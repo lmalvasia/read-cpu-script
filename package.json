@@ -2,14 +2,21 @@
   "name": "automatic-experiment",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "./start.js",
   "scripts": {
-    "start": "node index",
+    "start": "node start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "lodash": "^4.17.14",
+    "moment": "^2.24.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.4",
+    "@babel/preset-env": "^7.5.4",
+    "@babel/register": "^7.4.4"
   }
 }
