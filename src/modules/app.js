@@ -1,28 +1,34 @@
 import  { exec, spawn } from 'child_process';
 import { filter } from 'lodash';
+import FileService from './fileService';
 import UTILS from './utils';
-import fs from 'fs';
 
 export default class Experiment {
     constructor() {
         this._cpu = {};
+        this._currentApp = {};
+        this._executionTime = UTILS.getExecutionTime();
         this._activeApps = this._getReadyForRunApps();
+        this._runTime = 0;
         this._run();
     }
 
     _run() {
-        console.log('running', this._activeApps);
         const firstApp = this._activeApps[0];
-        console.log('first app', firstApp);
+        this._currentApp = firstApp;
+        console.log('🔵 CURRENT APP -->', this._currentApp.NAME);
         this._start(firstApp)
             .then(stadout => {
-                console.log('Running app:', stadout);
-                this._cpu = this._getRunningApp(firstApp.READ_CPU);
+                console.log('✅ App running successfully', stadout);
+                this._cpu = this._getRunningApp();
                 this._listenAndSaveCPUusage();
                 setTimeout(() => {
-                    this._close(this._activeApps.PACKAGE_NAME);
-                }, 10000);
-            })
+                    this._closeCPUSocket();
+                    this._closeApp();
+                }, this._executionTime);
+            }).catch(error => {
+                console.error('⭕️ ERROR', error);
+            });
     }
 
     _getReadyForRunApps() {
@@ -37,48 +43,49 @@ export default class Experiment {
                 ];
             }
         } catch (e) {
-            console.error(e);
+            console.error('⭕️ ERROR', e);
         }
     }
 
     _start(app) {
-        const command = `adb shell am start -n ${app.PACKAGE_NAME}/${app.ACTIVITY}`;
-        console.log('command', command);
         return new Promise((resolve, reject) => {
+            const command = `adb shell am start -n ${app.PACKAGE_NAME}/${app.ACTIVITY}`;
+            console.log('🏃‍♀️ [ADB - Starting app]:', command);
             exec(command, (error, stdout) => {
+                console.log('hello world');
                 if (error) {
-                    reject(new Error('⭕️ Error when starting app. ', error));
+                    reject('⭕️ Error when starting app:', error);
                 }
                 if (stdout) {
-                    console.log('stdout', stdout);
                     resolve(stdout);
                 }
             });
         })
     }
 
-    _getRunningApp(packageName) {
-        console.log('sh', `adb shell top | grep ${packageName}`)
-        return spawn('sh', ['-c', `adb shell top | grep ${packageName}`]);
+    _getRunningApp() {
+        const command = `adb shell top | grep ${this._currentApp.READ_CPU}`;
+        console.log('🗒  [ADB - Listing processes]:', command);
+        return spawn('sh', ['-c', command]);
     }
 
     _listenAndSaveCPUusage() {
+        console.log('👂 [ADB - Listening processes]');
         this._cpu.stdout.on('data', data => {
-            fs.writeFile(new Date().getTime() + '.log', data, err => {
-                if (err) console.log(err)
-                console.log('Log created successfully.')
-            })
+            console.log('📝 [ADB - Writing outputs]');
+            const fileService = new FileService(this._currentApp.NAME, this._runTime.toString());
+            fileService._writeFile(data);
         });
     }
 
-    _close(packageName) {
-        return new Promise((reject, resolve) => {
-            exec(`adb shell pm clear ${packageName}`, err => {
-                if (err) reject(err);
-                this._cpu.kill();
-                console.log('CPU Socket closed.')
-                console.log('App closed successfully.')
-            });
+    _closeCPUSocket() {
+        this._cpu.kill();
+    }
+
+    _closeApp() {
+        const command = `adb shell pm clear ${this._currentApp.MAIN_PROCESS_NAME}`;
+        exec(command, stdout => {
+            console.log('✳️  [ADB - App closed.]')
         });
     }
 
