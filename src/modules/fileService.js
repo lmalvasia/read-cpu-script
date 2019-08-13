@@ -21,7 +21,7 @@ export default class File {
                 data,
                 err => {
                     if (err) console.log(err);
-                    console.log('Successfully Written to File.');
+                    console.log('🗂  [LOGS] - Logs saved successfully.');
                 }
             );
         });
