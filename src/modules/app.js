@@ -64,7 +64,7 @@ export default class Experiment {
             if (UTILS.appExists) {
                 const androidApps = UTILS.getAndroidApps();
                 const iosApps = UTILS.getiOSApps();
-                
+
                 return [
                     ...filter(androidApps, approach => approach.RUN),
                     ...filter(iosApps, approach => approach.RUN),
@@ -91,17 +91,22 @@ export default class Experiment {
     }
 
     _getRunningApp() {
-        const command = `adb shell top | grep ${this._currentApp.READ_CPU}`;
+        const command = `adb shell top -d 40 | grep ${this._currentApp.READ_CPU}`;
         console.log('🗒  [ADB - Listing processes]', command);
         return spawn('sh', ['-c', command]);
     }
 
     _listenAndSaveCPUusage() {
         console.log('👂 [ADB - Listening processes]');
+        let result = '';
         this._cpu.stdout.on('data', data => {
             console.log('📝 [ADB - Writing outputs]');
+            result += data.toString();
+        });
+        this._cpu.on('close', () => {
+            console.log('📝 [ADB - Writing outputs CLOSE]');
             const fileService = new FileService(this._currentApp.NAME, this._currentRun.toString());
-            fileService._writeFile(data);
+            fileService._writeFile(result);
         });
     }
 

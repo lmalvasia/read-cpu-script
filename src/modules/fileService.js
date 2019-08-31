@@ -7,7 +7,7 @@ export default class File {
     constructor(packageName, runTime) {
         this._packageName = packageName;
         this._runTime = runTime;
-        this._path = `./output/${this._packageName}/${this._runTime}.log`;
+        this._path = `./output/${this._packageName}/${this._runTime}.txt`;
     }
 
     _writeFile(data) {
