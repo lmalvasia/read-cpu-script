@@ -1,6 +1,7 @@
 const PARAMS = {
-    EXECUTION_TIME: 100000, // miliseconds
-    RUN_TIMES: 25,
+    TOP_INTERVAL: 30, // seconds
+    EXECUTION_TIME: 50000, // miliseconds, should be TOP_INTERVAL + 20000 miliseconds
+    RUN_TIMES: 50,
     APPS: {
         ANDROID: {
             PWA: {

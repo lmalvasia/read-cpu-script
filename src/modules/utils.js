@@ -13,6 +13,18 @@ export default class Utils {
         return PARAMS.EXECUTION_TIME;
     }
 
+    static getTopInterval() {
+        if (!PARAMS.TOP_INTERVAL) {
+            throw new Error('⭕️ TOP_INTERVAL is not defined.');
+        }
+
+        if (typeof PARAMS.TOP_INTERVAL !== 'number') {
+            throw new Error('⭕️ TOP_INTERVAL is not a number.');
+        }
+
+        return PARAMS.TOP_INTERVAL;
+    }
+
     static getRunTimes() {
         if (!PARAMS.RUN_TIMES) {
             throw new Error('⭕️ RUN_TIMES is not defined.');

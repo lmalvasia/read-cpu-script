@@ -9,6 +9,7 @@ export default class Experiment {
         this._currentApp = {};
         this._currentRun = 0;
         this._executionTime = UTILS.getExecutionTime();
+        this._topInterval = UTILS.getTopInterval();
         this._activeApps = this._getReadyForRunApps();
         this._runTimes = UTILS.getRunTimes();
         this._runApproach();
@@ -42,8 +43,11 @@ export default class Experiment {
             this._openApp(this._currentApp)
                 .then(stadout => {
                     console.log('📲 [APP] Running successfully', stadout);
-                    this._cpu = this._getRunningApp();
-                    this._listenAndSaveCPUusage();
+                    // This time was added in order to avoid the first record, which comes with dirty data
+                    setTimeout(() => {
+                      this._cpu = this._getRunningApp();
+                      this._listenAndSaveCPUusage();
+                    }, 2000)
                     // The app will be closed after the executionTime
                     setTimeout(() => {
                         this._closeCPUSocket();
@@ -91,7 +95,7 @@ export default class Experiment {
     }
 
     _getRunningApp() {
-        const command = `adb shell top -d 40 | grep ${this._currentApp.READ_CPU}`;
+        const command = `adb shell top -d ${this._topInterval} | grep ${this._currentApp.READ_CPU}`;
         console.log('🗒  [ADB - Listing processes]', command);
         return spawn('sh', ['-c', command]);
     }
