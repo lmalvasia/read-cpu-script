@@ -4,6 +4,7 @@ import  { exec, spawn } from 'child_process';
 import { filter } from 'lodash';
 import FileService from './fileService';
 import UTILS from './utils';
+import cors from 'cors';
 
 export default class Experiment {
     constructor() {
@@ -29,6 +30,7 @@ export default class Experiment {
     _initializeMiddlewares() {
       this.app.use(express.json()); // for parsing application/json
       this.app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+      this.app.use(cors());
     }
 
     _exposeEndpoint() {
