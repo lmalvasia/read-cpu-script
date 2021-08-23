@@ -30,7 +30,7 @@ export default class Experiment {
     _initializeMiddlewares() {
       this.app.use(express.json()); // for parsing application/json
       this.app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
-      this.app.use(cors());
+      this.app.use(cors({ origin: '*' }));
     }
 
     _exposeEndpoint() {
