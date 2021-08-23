@@ -4,10 +4,10 @@ import mkdirp from 'mkdirp';
 const getDirName = require('path').dirname;
 
 export default class File {
-    constructor(packageName, runTime) {
+    constructor(packageName, runTime, errorFile = false) {
         this._packageName = packageName;
         this._runTime = runTime;
-        this._path = `./output/${this._packageName}/${this._runTime}.txt`;
+        this._path = `./output/${this._packageName}/${this._runTime}${errorFile && '-errors'}.txt`;
     }
 
     _writeFile(data) {

@@ -1,3 +1,5 @@
+import { createServer } from "http";
+import express from "express";
 import  { exec, spawn } from 'child_process';
 import { filter } from 'lodash';
 import FileService from './fileService';
@@ -5,6 +7,13 @@ import UTILS from './utils';
 
 export default class Experiment {
     constructor() {
+        this.app = express();
+        this.httpServer = createServer(this.app);
+        this.port = process.env.PORT || 5000;
+        this.env = process.env.NODE_ENV || "development";
+        this._errors = 0;
+        this._initializeMiddlewares();
+        this._router = express.Router();
         this._cpu = {};
         this._currentApp = {};
         this._currentRun = 0;
@@ -12,7 +21,22 @@ export default class Experiment {
         this._topInterval = UTILS.getTopInterval();
         this._activeApps = this._getReadyForRunApps();
         this._runTimes = UTILS.getRunTimes();
-        this._runApproach();
+        // this._runApproach();
+        this.listen();
+        this._exposeEndpoint();
+    }
+
+    _initializeMiddlewares() {
+      this.app.use(express.json()); // for parsing application/json
+      this.app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+    }
+
+    _exposeEndpoint() {
+      this._router.route("/errors").post((payload) => {
+        this._errors = payload.body.errors;
+        console.log('ERRORS', this._errors);
+      });
+      this.app.use("/", this._router);
     }
 
     async _runApproach() {
@@ -37,6 +61,11 @@ export default class Experiment {
         return true;
     }
 
+    _saveErrors() {
+      const fileService = new FileService(this._currentApp.NAME, this._currentRun.toString(), true);
+      fileService._writeFile(this._errors);
+    }
+
     _runExperiment(_runNumber) {
         return new Promise((resolve, reject) => {
             this._currentRun = _runNumber;
@@ -52,6 +81,7 @@ export default class Experiment {
                     setTimeout(() => {
                         this._closeCPUSocket();
                         this._closeApp();
+                        this._saveErrors();
                         // I added an interval just to do a manual clean up on the device
                         setTimeout(() => {
                             resolve(_runNumber);
@@ -125,4 +155,9 @@ export default class Experiment {
         });
     }
 
+    listen() {
+      this.httpServer.listen(this.port, () => {
+        console.log(`Server running in port ${this.port}`);
+      });
+    }
 }
